@@ -1,5 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using TransPerthImport.Helpers;
 using TransPerthImport.Processors;
@@ -11,27 +14,22 @@ namespace TransPerthImport
     public class Program
     {
 
-        public static void Main(String[] args)
+        static void Main(String[] args)
         {
-
             ConfigurationHelper.SetupConfig();
+
+            var SiteToTarget = ConfigurationHelper.config["TargetAddress"];
+
+            Console.WriteLine(SiteToTarget);
             
+            var scraper = new Processors.ScraperProcess(Target: SiteToTarget);
+            var returnedValue = scraper.ProcessTwitter();
 
-            Console.WriteLine(ConfigurationHelper.config.GetConnectionString("DynamoDB")); //HACK find this
-            var wantedValue = ConfigurationHelper.config["TargetAddress"];
-                
-            Console.WriteLine(wantedValue);
-            Console.WriteLine("Got here");
-
-            TransPerthImport.Processors.ScraperProcess.ProcessTwitter();
-
-            var data = TransPerthImport.Processors.ScraperProcess.DataProvided;
-            
-            Console.WriteLine("Made it here");
-            // TODO : Get rid of bad connection string
-
+            foreach (var tweet in returnedValue)
+            {
+                Console.WriteLine(tweet + " END of Tweet");
+            }
         }
-        
         
         // Need to import data from multiple sources. 
         

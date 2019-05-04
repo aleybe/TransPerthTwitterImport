@@ -1,47 +1,66 @@
-using System;
-using System.Net;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
-using static System.Net.WebRequest;
-using TransPerthImport.Helpers;
+
     
 namespace TransPerthImport.Processors
 {
-    public static class ScraperProcess
+    public class ScraperProcess
     {
 
-        private static string Target = ConfigurationHelper.config["TargetAddress"];
-
-        public static string DataProvided;
+        private static string _target;
+        private static string _filterToFind;
         
-        public static async void ProcessTwitter()
+        public ScraperProcess(string filterToFind = "//*[@id='stream-items-id']", string Target = "www.google.com.au")
         {
-            var pageContent = await GetHtmlData();
-            DataProvided = ParseHtmlData(pageContent);
+            _filterToFind = filterToFind;
+            _target = Target;
         }
         
-        public static async Task<string> GetHtmlData()
+        public List<string> ProcessTwitter()
         {
+            var pageContent = GetHtmlData(_target).Result;
+            return(ParseHtmlData(pageContent, _filterToFind));
+        }
+        
+        private static async Task<string> GetHtmlData(string target)
+        {
+            var pageContents = "Nothing";
             HttpClient client = new HttpClient();
-            var response = await client.GetAsync(Target);
-            var pageContents = await response.Content.ReadAsStringAsync();
-            
-            Console.WriteLine("Collected Data");
 
+            var response = client.GetStringAsync(target);
+            pageContents = await response;
             return pageContents;
         }
 
-        public static string ParseHtmlData(string htmlInput)
+        public static List<string> ParseHtmlData(string htmlInput, string filter)
         {
             HtmlDocument twitterDocument = new HtmlDocument();
             twitterDocument.LoadHtml(htmlInput);
             
-            var toLookFor = "(//div[contains(@id, 'stream-items-id)]//p[0])";
-            var tweetsAvailable = twitterDocument.DocumentNode.SelectSingleNode(toLookFor).InnerText;
+            var toLookFor = filter;
+            var twitterStream = twitterDocument.DocumentNode.SelectSingleNode(toLookFor).SelectNodes("./li");
+            
+            List<string> listOfStrings = new List<string>();
+            
+            foreach (var tweet in twitterStream)
+            {
+//                var tweetText = tweet.SelectSingleNode("./div[@class='js-tweet-text-container']/p[0]").InnerText;
+//                var tweetText = tweet.SelectSingleNode("./div[0]/div[@class='content']/div[@class='js-tweet-text-container']/p[0]").InnerText;
+                var tweetText = tweet.SelectSingleNode(".//div[@class='content']/div[@class='js-tweet-text-container']/p").InnerText;
+                listOfStrings.Add(tweetText);
+            }
+            
+            //get individual nodes
+            
+            //*[@id="timeline"]/div/div[2]
+            // -> ol - //*[@id="stream-items-id"]
+            //     -> list items - //li[@data-item-type="tweet"]
+            //         -> content
+            //             -> js-tweet-text-container //*[@id="stream-item-tweet-1124573127382577152"]/div[1]/div[2]/div[2]/p
 
-            return (tweetsAvailable);
-
+            return (listOfStrings);
 
         }
     }
