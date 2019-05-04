@@ -42,14 +42,12 @@ namespace TransPerthImport.Processors
             var toLookFor = filter;
             var twitterStream = twitterDocument.DocumentNode.SelectSingleNode(toLookFor).SelectNodes("./li");
             
-            List<string> listOfStrings = new List<string>();
+            List<string> listOfTweets = new List<string>();
             
             foreach (var tweet in twitterStream)
             {
-//                var tweetText = tweet.SelectSingleNode("./div[@class='js-tweet-text-container']/p[0]").InnerText;
-//                var tweetText = tweet.SelectSingleNode("./div[0]/div[@class='content']/div[@class='js-tweet-text-container']/p[0]").InnerText;
                 var tweetText = tweet.SelectSingleNode(".//div[@class='content']/div[@class='js-tweet-text-container']/p").InnerText;
-                listOfStrings.Add(tweetText);
+                listOfTweets.Add(tweetText);
             }
             
             //get individual nodes
@@ -60,7 +58,7 @@ namespace TransPerthImport.Processors
             //         -> content
             //             -> js-tweet-text-container //*[@id="stream-item-tweet-1124573127382577152"]/div[1]/div[2]/div[2]/p
 
-            return (listOfStrings);
+            return (listOfTweets);
 
         }
     }
