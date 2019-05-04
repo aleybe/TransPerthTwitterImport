@@ -15,8 +15,6 @@ namespace TransPerthImport
 
             var SiteToTarget = ConfigurationHelper.config["TargetAddress"];
 
-            Console.WriteLine(SiteToTarget);
-            
             var scraper = new ScraperProcess(Target: SiteToTarget);
             var returnedValue = scraper.ProcessTwitter();
 

@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="alexyz.dev.dbrepo" Version="1.0.0" />
       <PackageReference Include="HtmlAgilityPack" Version="1.11.4" />
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.0.0-preview4.19216.2" />
       <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.0.0-preview4.19216.2" />

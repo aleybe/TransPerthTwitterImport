@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using alexyz.dev.dbrepo;
+using alexyz.dev.dbrepo.Models;
 using HtmlAgilityPack;
 
 //Notes :
@@ -22,6 +24,7 @@ namespace TransPerthImport.Processors
 
         private static string _target;
         private static string _filterToFind;
+        private List<alexyz.dev.dbrepo.Models.Tweet> tweetList;
         
         public ScraperProcess(string filterToFind = "//*[@id='stream-items-id']", string Target = "www.google.com.au")
         {
@@ -29,10 +32,13 @@ namespace TransPerthImport.Processors
             _target = Target;
         }
         
-        public List<string> ProcessTwitter()
+        public List<alexyz.dev.dbrepo.Models.Tweet> ProcessTwitter()
         {
             var pageContent = GetHtmlData(_target).Result;
-            return(ParseHtmlData(pageContent, _filterToFind));
+            var parsedTweets = ParseHtmlData(pageContent, _filterToFind);
+            TweetDBUpdate(parsedTweets);
+            
+            return(parsedTweets);
         }
         
         private static async Task<string> GetHtmlData(string target)
@@ -45,7 +51,7 @@ namespace TransPerthImport.Processors
             return pageContents;
         }
 
-        public static List<string> ParseHtmlData(string htmlInput, string filter)
+        public static List<alexyz.dev.dbrepo.Models.Tweet> ParseHtmlData(string htmlInput, string filter)
         {
             HtmlDocument twitterDocument = new HtmlDocument();
             twitterDocument.LoadHtml(htmlInput);
@@ -53,18 +59,23 @@ namespace TransPerthImport.Processors
             var toLookFor = filter;
             var twitterStream = twitterDocument.DocumentNode.SelectSingleNode(toLookFor).SelectNodes("./li");
             
-            List<string> listOfTweets = new List<string>();
+            var tweetList = new List<alexyz.dev.dbrepo.Models.Tweet>();
             
             foreach (var tweet in twitterStream)
             {
                 var tweetText = tweet.SelectSingleNode(".//div[@class='content']/div[@class='js-tweet-text-container']/p").InnerText;
-                listOfTweets.Add(tweetText);
+                var currentTweet = new alexyz.dev.dbrepo.Models.Tweet();
+                currentTweet.TweetText = tweetText;
+                tweetList.Add(currentTweet);
             }
             
-            //get individual nodes
-            
-            return (listOfTweets);
+            return (tweetList);
+        }
 
+        private void TweetDBUpdate(List<alexyz.dev.dbrepo.Models.Tweet> TweetsToUpdate)
+        {
+            var TweetProcDBContext = new DatabaseContext();
+            TweetProcDBContext.AddRange(TweetsToUpdate);
         }
     }
 }
