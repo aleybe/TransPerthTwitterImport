@@ -3,7 +3,18 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 
-    
+//Notes :
+//
+//Mapping of the twitter data:
+//
+//*[@id="timeline"]/div/div[2]
+// -> ol - //*[@id="stream-items-id"]
+//     -> list items - //li[@data-item-type="tweet"]
+//         -> content
+//             -> js-tweet-text-container //*[@id="stream-item-tweet-1124573127382577152"]/div[1]/div[2]/div[2]/p
+
+
+
 namespace TransPerthImport.Processors
 {
     public class ScraperProcess
@@ -52,12 +63,6 @@ namespace TransPerthImport.Processors
             
             //get individual nodes
             
-            //*[@id="timeline"]/div/div[2]
-            // -> ol - //*[@id="stream-items-id"]
-            //     -> list items - //li[@data-item-type="tweet"]
-            //         -> content
-            //             -> js-tweet-text-container //*[@id="stream-item-tweet-1124573127382577152"]/div[1]/div[2]/div[2]/p
-
             return (listOfTweets);
 
         }
