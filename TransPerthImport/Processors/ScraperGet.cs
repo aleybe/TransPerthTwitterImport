@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -24,7 +25,6 @@ namespace TransPerthImport.Processors
 
         private static string _target;
         private static string _filterToFind;
-        private List<alexyz.dev.dbrepo.Models.Tweet> tweetList;
         
         public ScraperProcess(string filterToFind = "//*[@id='stream-items-id']", string Target = "www.google.com.au")
         {
@@ -32,7 +32,7 @@ namespace TransPerthImport.Processors
             _target = Target;
         }
         
-        public List<alexyz.dev.dbrepo.Models.Tweet> ProcessTwitter()
+        public List<Tweet> ProcessTwitter()
         {
             var pageContent = GetHtmlData(_target).Result;
             var parsedTweets = ParseHtmlData(pageContent, _filterToFind);
@@ -51,7 +51,7 @@ namespace TransPerthImport.Processors
             return pageContents;
         }
 
-        public static List<alexyz.dev.dbrepo.Models.Tweet> ParseHtmlData(string htmlInput, string filter)
+        public static List<Tweet> ParseHtmlData(string htmlInput, string filter)
         {
             HtmlDocument twitterDocument = new HtmlDocument();
             twitterDocument.LoadHtml(htmlInput);
@@ -59,23 +59,31 @@ namespace TransPerthImport.Processors
             var toLookFor = filter;
             var twitterStream = twitterDocument.DocumentNode.SelectSingleNode(toLookFor).SelectNodes("./li");
             
-            var tweetList = new List<alexyz.dev.dbrepo.Models.Tweet>();
+            var tweetList = new List<Tweet>();
             
             foreach (var tweet in twitterStream)
             {
                 var tweetText = tweet.SelectSingleNode(".//div[@class='content']/div[@class='js-tweet-text-container']/p").InnerText;
-                var currentTweet = new alexyz.dev.dbrepo.Models.Tweet();
-                currentTweet.TweetText = tweetText;
+                
+                var currentTweet = new Tweet()
+                {
+                    TweetText = tweetText,
+                    Likes = 0,
+                    Retweets = 0
+                };
+                
                 tweetList.Add(currentTweet);
             }
             
             return (tweetList);
         }
 
-        private void TweetDBUpdate(List<alexyz.dev.dbrepo.Models.Tweet> TweetsToUpdate)
+        private void TweetDBUpdate(List<Tweet> tweetsToUpdate)
         {
-            var TweetProcDBContext = new DatabaseContext();
-            TweetProcDBContext.AddRange(TweetsToUpdate);
+            var tweetProcDbContext = new DatabaseContext();
+            
+            tweetProcDbContext.Tweets.AddRange(tweetsToUpdate);
+            tweetProcDbContext.SaveChanges();
         }
     }
 }
